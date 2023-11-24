@@ -57,12 +57,12 @@ if(isset($_POST['submit'])){
    // If there are no errors, proceed with registration
    if (empty($error_msg)) {
 
-      // Hash the password using sha1
-      $c_pass = sha1($c_password);
+      // Hash the password using password_hash
+      $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
       // Prepare and execute the SQL insert statement
       $insert_user = $conn->prepare("INSERT INTO `users` (name, number, email, password) VALUES (?, ?, ?, ?)");
-      $insert_user->execute([$name, $number, $email, $c_pass]);
+      $insert_user->execute([$name, $number, $email, $hashed_password]);
 
       if ($insert_user) {
          // User registration successful
@@ -73,9 +73,6 @@ if(isset($_POST['submit'])){
 
       }
 }
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -91,19 +88,15 @@ if(isset($_POST['submit'])){
 
    <!-- custom css file link  -->
    <link rel="stylesheet" href="css/style.css">
-   
-
 </head>
 <body>
    
 <?php include 'components/user_header.php'; ?>
 
 <!-- register section starts  -->
-
 <section class="form-container">
-
    <form action="" method="post">
-      <h3>create an user account</h3>
+      <h3>create a user account</h3>
       <input type="tel" name="name" required maxlength="50" placeholder="Enter your name" class="box">
       <input type="email" name="email" required maxlength="50" placeholder="Enter your email" class="box">
       <input type="number" name="number" required min="0" max="9999999999" maxlength="10" placeholder="Enter your number" class="box">
@@ -112,28 +105,15 @@ if(isset($_POST['submit'])){
       <p>Already have an account? <a href="login.php">Login now</a></p>
       <input type="submit" value="register now" name="submit" class="btn">
    </form>
-
 </section>
-
 <!-- register section ends -->
-
-
-
-
-
-
-
-
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
 
 <?php include 'components/footer.php'; ?>
 
-
 <!-- custom js file link  -->
 <script src="js/script.js"></script>
-
 
 <?php include 'components/message.php'; ?>
 

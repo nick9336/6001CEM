@@ -13,7 +13,7 @@ $daysReq = array();
 
 // Assuming you want to count for a specific month and year
 $year = 2023;
-$month = 10; // Replace with your desired month
+$month = 11; // Replace with your desired month
 
 // Get the number of days in the specified month and year
 $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);

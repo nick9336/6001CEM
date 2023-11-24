@@ -1,5 +1,13 @@
 <?php  
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require '../phpmailer/src/Exception.php';
+require '../phpmailer/src/PHPMailer.php';
+require '../phpmailer/src/SMTP.php';
+
 include '../components/connect.php';
 
 if(isset($_COOKIE['agent_id'])){
@@ -185,7 +193,32 @@ if(isset($_POST['post'])){
       $insert_property = $conn->prepare("INSERT INTO `property`(agent_id, property_title, address, price, type, offer, furnished, car_park, bedroom, bathroom, balcony, size, age, swimming_pool, lift, security_guard, play_ground, garden, gym, shopping_mall, hospital, school, market_area, image_01, image_02, image_03, image_04, image_05, description) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); 
       $insert_property->execute([$agent_id, $property_title, $address, $price, $type, $offer, $furnished, $car_park, $bedroom, $bathroom, $balcony, $size, $age, $swimming_pool, $lift, $security_guard, $play_ground, $garden, $gym, $shopping_mall, $hospital, $school, $market_area, $rename_image_01, $rename_image_02, $rename_image_03, $rename_image_04, $rename_image_05, $description]);
       move_uploaded_file($image_01_tmp_name, $image_01_folder);
-      $success_msg[] = 'property posted successfully!';
+
+      $select_agent = $conn->prepare("SELECT * FROM `agents` WHERE id = ? LIMIT 1");
+      $select_agent->execute([$agent_id]);
+      $fetch_agent = $select_agent->fetch(PDO::FETCH_ASSOC);
+
+
+         $mail = new PHPMailer();
+         $mail->isSMTP();
+         $mail->Host = 'smtp.gmail.com';
+         $mail->SMTPAuth = true;
+         $mail->Username = 'estatemy2023@gmail.com';
+         $mail->Password = 'jwtbstjzqwjpeqlq';
+         $mail->SMTPSecure = 'ssl';
+         $mail->Port = 465;
+         $mail->setFrom('estatemy2023@gmail.com', 'MyEstate');
+         $mail->addAddress($fetch_agent['email']); // Use the email entered during registration
+         $mail->isHTML(true);
+         $mail->Subject = 'Property Listing Confirmation';
+         $mail->Body = 'Dear ' . $fetch_agent['name'] . ', <br/><br/>
+                     Congratulations, you have successfully posted a listing as an agent. <br/>
+                     http://localhost/realestate/project/agent/my_listings.php <br/><br/>
+                     Click the link to view your listings.';
+            
+      if ($mail->send()) {
+        $success_msg[] = 'Property posted.';
+      }
    }
 
 }

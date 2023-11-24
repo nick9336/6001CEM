@@ -1,5 +1,4 @@
 <?php  
-
 include 'components/connect.php';
 
 if(isset($_COOKIE['user_id'])){
@@ -14,7 +13,6 @@ $select_user->execute([$user_id]);
 $fetch_user = $select_user->fetch(PDO::FETCH_ASSOC);
 
 if(isset($_POST['submit'])){
-
    $name = $_POST['name'];
    $name = filter_var($name, FILTER_SANITIZE_STRING); 
    $number = $_POST['number'];
@@ -33,7 +31,7 @@ if(isset($_POST['submit'])){
       $verify_email->execute([$email]);
       if($verify_email->rowCount() > 0){
          $warning_msg[] = 'Email already taken!';
-      }else{
+      } else {
          $update_email = $conn->prepare("UPDATE `users` SET email = ? WHERE id = ?");
          $update_email->execute([$email, $user_id]);
          $success_msg[] = 'Email updated!';
@@ -49,7 +47,7 @@ if(isset($_POST['submit'])){
       $verify_number->execute([$number]);
       if($verify_number->rowCount() > 0){
          $warning_msg[] = 'Number already taken!';
-      }else{
+      } else {
          $update_number = $conn->prepare("UPDATE `users` SET number = ? WHERE id = ?");
          $update_number->execute([$number, $user_id]);
          $success_msg[] = 'Number updated!';
@@ -60,38 +58,26 @@ if(isset($_POST['submit'])){
       }
    }
 
-   $empty_pass = 'da39a3ee5e6b4b0d3255bfef95601890afd80709';
+   $empty_pass = '';
    $prev_pass = $fetch_user['password'];
-   $old_pass = sha1($_POST['old_pass']);
-   $old_pass = filter_var($old_pass, FILTER_SANITIZE_STRING);
-   $new_pass = sha1($_POST['new_pass']);
-   $new_pass = filter_var($new_pass, FILTER_SANITIZE_STRING);
-   $c_pass = sha1($_POST['c_pass']);
-   $c_pass = filter_var($c_pass, FILTER_SANITIZE_STRING);
+   $old_pass = $_POST['old_pass'];
+   $new_pass = $_POST['new_pass'];
+   $c_pass = $_POST['c_pass'];
 
-   if($old_pass != $empty_pass){
-      if($old_pass != $prev_pass){
+   if(!empty($old_pass)) {
+      if(password_verify($old_pass, $prev_pass)){
+         if($new_pass != $c_pass || strlen($new_pass) < 6) {
+            $warning_msg[] = 'New password and confirm password must match and be at least 6 characters!';
+         } else {
+            $hashed_password = password_hash($new_pass, PASSWORD_DEFAULT);
+            $update_pass = $conn->prepare("UPDATE `users` SET password = ? WHERE id = ?");
+            $update_pass->execute([$hashed_password, $user_id]);
+            $success_msg[] = 'Password updated successfully!';
+         }
+      } else {
          $warning_msg[] = 'Old password not matched!';
-      }else if($new_pass != $c_pass){
-         $warning_msg[] = 'Confirm password not matched!';
-      }else if(strlen($new_pass) < 6) {
-         $warning_msg[] = 'Password must be more than 6 characters!';
-      }else{
-         if ($new_pass != $empty_pass) {
-            if (strlen($_POST['new_pass']) < 6) {
-                $warning_msg[] = 'Password must be at least 6 characters!';
-            } else {
-                $update_pass = $conn->prepare("UPDATE `users` SET password = ? WHERE id = ?");
-                $update_pass->execute([$c_pass, $user_id]);
-                $success_msg[] = 'Password updated successfully!';
-            }
-        } else {
-            $warning_msg[] = 'Please enter a new password!';
-        }
       }
    }
-
-
 }
 
 ?>
@@ -129,11 +115,6 @@ if(isset($_POST['submit'])){
    </form>
 
 </section>
-
-
-
-
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
 

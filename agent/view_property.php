@@ -166,8 +166,9 @@ if(isset($_POST['delete'])){
       <h3 class="title">Description</h3>
       <p class="description"><?= $fetch_property['description']; ?></p>
       <form action="" method="post" class="flex-btn">
-         <input type="hidden" name="delete_id" value="<?= $property_id; ?>">
-         <input type="submit" value="delete property" name="delete" class="delete-btn" onclick="return confirm('delete this listing?');">
+         <?php
+            echo '<a href="update_property.php?get_id=' . $fetch_property['id'] . '" class="btn">Update Listing</a>';
+         ?>
       </form>
    </div>
    <?php

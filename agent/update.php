@@ -1,5 +1,4 @@
-<?php  
-
+<?php
 include '../components/connect.php';
 
 if(isset($_COOKIE['agent_id'])){
@@ -14,7 +13,6 @@ $select_agent->execute([$agent_id]);
 $fetch_agent = $select_agent->fetch(PDO::FETCH_ASSOC);
 
 if(isset($_POST['submit'])){
-
    $name = $_POST['name'];
    $name = filter_var($name, FILTER_SANITIZE_STRING); 
    $number = $_POST['number'];
@@ -60,38 +58,27 @@ if(isset($_POST['submit'])){
       }
    }
 
-   $empty_pass = 'da39a3ee5e6b4b0d3255bfef95601890afd80709';
+   $empty_pass = '';
    $prev_pass = $fetch_agent['password'];
-   $old_pass = sha1($_POST['old_pass']);
-   $old_pass = filter_var($old_pass, FILTER_SANITIZE_STRING);
-   $new_pass = sha1($_POST['new_pass']);
-   $new_pass = filter_var($new_pass, FILTER_SANITIZE_STRING);
-   $c_pass = sha1($_POST['c_pass']);
-   $c_pass = filter_var($c_pass, FILTER_SANITIZE_STRING);
+   $old_pass = $_POST['old_pass'];
+   $new_pass = $_POST['new_pass'];
+   $c_pass = $_POST['c_pass'];
 
-   if($old_pass != $empty_pass){
-      if($old_pass != $prev_pass){
-         $warning_msg[] = 'Old password not matched!';
-      }else if($new_pass != $c_pass){
-         $warning_msg[] = 'Confirm password not matched!';
-      }else if(strlen($new_pass) < 6) {
-         $warning_msg[] = 'Password must be more than 6 characters!';
+   if(!empty($old_pass)){
+      if(password_verify($old_pass, $prev_pass)){
+         if(!empty($new_pass) && $new_pass == $c_pass && strlen($new_pass) >= 6) {
+            // Hash the new password using password_hash
+            $hashed_new_pass = password_hash($new_pass, PASSWORD_DEFAULT);
+            $update_pass = $conn->prepare("UPDATE `agents` SET password = ? WHERE id = ?");
+            $update_pass->execute([$hashed_new_pass, $agent_id]);
+            $success_msg[] = 'Password updated successfully!';
+         } else {
+            $warning_msg[] = 'Invalid new password!';
+         }
       }else{
-         if ($new_pass != $empty_pass) {
-            if (strlen($_POST['new_pass']) < 6) {
-                $warning_msg[] = 'Password must be at least 6 characters!';
-            } else {
-                $update_pass = $conn->prepare("UPDATE `users` SET password = ? WHERE id = ?");
-                $update_pass->execute([$c_pass, $user_id]);
-                $success_msg[] = 'Password updated successfully!';
-            }
-        } else {
-            $warning_msg[] = 'Please enter a new password!';
-        }
+         $warning_msg[] = 'Old password not matched!';
       }
    }
-
-
 }
 
 ?>
@@ -109,7 +96,6 @@ if(isset($_POST['submit'])){
 
    <!-- custom css file link  -->
    <link rel="stylesheet" href="../css/admin_style.css">
-
 </head>
 <body>
    
@@ -129,11 +115,6 @@ if(isset($_POST['submit'])){
    </form>
 
 </section>
-
-
-
-
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
 
